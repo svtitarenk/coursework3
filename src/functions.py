@@ -10,8 +10,7 @@ file_path = os.path.join(ROOT_DIR, 'data', 'operations.json')
 def get_json_file(file_json):
     """ забираем json файл из папки, по path, который задан через ROOT_DIR"""
     with open(file_json, 'r', encoding='utf-8') as file:
-        file_read = file.read()
-        json_content = json.loads(file_read)
+        json_content = json.load(file)
         return json_content
 
 
@@ -19,7 +18,7 @@ def filtered_lines(list_of_json):
     """Выбираем только EXECUTED операции """
 
     filter_executed_rows = []
-    for item in list_of_json[::-1]:
+    for item in list_of_json:
         if item.get("state") == "EXECUTED":
             filter_executed_rows.append(item)
     return filter_executed_rows
@@ -27,11 +26,9 @@ def filtered_lines(list_of_json):
 
 def sorted_datetime_toprows(dict_to_filter, top_rows_to_filter):
     """Последние top_rows_to_filter выполненных (EXECUTED) операций срезом"""
-    top_rows = int(top_rows_to_filter)
+    top_rows = top_rows_to_filter
     result = sorted(dict_to_filter, key=lambda operation: operation["date"], reverse=True)
     top5_result = result[:top_rows]
-    # json_view = json.dumps(top5_result, indent=4)
-    # print(json_view)
     return top5_result
 
 
@@ -45,28 +42,16 @@ def hide_numbers(transaction_from_to):
     """Счет 43241152692663622869"""
     if transaction_from_to is None:
         return "Не определено"
-    elif str(transaction_from_to).lower().startswith("счет"):
-        """ Если это счет, возвращаем последние 4 цифры"""
-        return f"Счет **{transaction_from_to[-4::]}"
+
+    card_data = transaction_from_to.split(' ')
+    card_number = card_data.pop(-1)
+    if transaction_from_to.lower().startswith("счет"):
+        card_number = f"**{card_number[-4:]}"
     else:
-        """ Если это НЕ счет, то подразумеваем карта и разбиваем номер по 4 цифры и скрываем"""
-        # full_code = ','.join(str(transaction_from_to).split(' '))
-        card_number = str(transaction_from_to).split(' ')
-        hidden_number = ""
-        count = 0
-        for number in card_number[-1]:
-            count += 1
-            if count in [5, 13]:
-                hidden_number += ' ' + number
-            elif count in [9]:
-                hidden_number += ' *'
-            elif count in [1, 2, 3, 4, 5, 6, 13, 14, 15, 16]:
-                hidden_number += number
-            else:
-                hidden_number += "*"
-        # card_text = " ".join(card_number[:-1:])
-        # {card_number[-1]} # ' '.join(card_number[:-1:])
-        return f"{" ".join(card_number[:-1:])} {hidden_number}"
+        card_number = f"{card_number[:4]} {card_number[4:6]}** **** {card_number[-4:]}"
+    card_data.append(card_number)
+    return f'{" ".join(card_data)}'
+
 
 
 def result_transactions(transaction_list):

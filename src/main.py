@@ -14,7 +14,6 @@ def main():
     filtered_array = filtered_lines(content_to_filter)
     filtered_top5rows = sorted_datetime_toprows(filtered_array, how_many_rows)
     row_ = result_transactions(filtered_top5rows)
-    print(row_)
 
 
 main()
